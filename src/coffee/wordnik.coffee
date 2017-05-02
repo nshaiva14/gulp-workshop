@@ -16,7 +16,7 @@ getWordnik = ->
     words = data
     words.sort ->
       0.5 - Math.random()
-    $('input').css 'visibility', 'visible'  
+    $('input').css 'visibility', 'visible'
     do getRandomWord
 
 

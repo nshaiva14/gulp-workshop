@@ -1,35 +1,91 @@
+const browserSync = require('browser-sync');
 /*
  * Big shout out to these guys for showing the practical implications
  * https://julienrenaux.fr/2014/05/25/introduction-to-gulp-js-with-practical-examples/
 */
 
-// Include Gulp
+const gulp = require('gulp');
+
+const pug = require('gulp-pug');
+const pugLinter = require('gulp-pug-linter');
+
+const coffeescript = require('gulp-coffeescript');
+const uglify = require('gulp-uglify');
+
+const sass = require('gulp-sass');
+const cssnano = require('gulp-cssnano');
+
+gulp.task('compile-pug', () => {
+  gulp.src('./src/pug/*.pug')
+  .pipe(pug())
+  .on('error', onError)
+  .pipe(gulp.dest('./public'))
+  .pipe(browserSync.reload({
+      stream: true,
+    }));
+
+})
+gulp.task('lint-pug', () => {
+  return gulp
+    .src('./src/pug/*.pug')
+    .pipe(pugLinter())
+    .pipe(pugLinter.reporter())
+})
 
 
-// Include Our Plugins
+gulp.task('browserSync', () => {
+  browserSync.init({
+    server: {
+      baseDir: 'public',
+    }
+  });
+});
 
 
-// Compile Pug with linter
-
-
-// browserSync task
-
-
-// Compile our coffeescript
+gulp.task('coffee', () => {
+  gulp.src('./src/coffee/*.coffee')
+    .pipe(coffeescript())
+    .pipe(uglify())
+    .pipe(gulp.dest('./public'))
+    .pipe(browserSync.reload({
+      stream: true,
+    }));
+});
 
 
 
 // Compile sass
+gulp.task('sass', () => {
+  return gulp.src('./src/style/*.scss')
+    .pipe(sass()) // Using gulp-sass
+    .pipe(cssnano())
+    .on('error', onError)
+    .pipe(gulp.dest('./public'))
+    .pipe(browserSync.reload({
+      stream: true,
+    }));
+});
 
 
 
-// watch
+gulp.task('watch', ['browserSync'], () => {
+  gulp.watch('./src/pug/*.pug', ['lint-pug', 'compile-pug']);
+  gulp.watch('./src/style/*.scss', ['sass']);
+  gulp.watch('./src/coffee/*.coffee',['coffee']);
+});
 
 
 // default gulp
+gulp.task('default', ['compile-pug','sass','coffee','watch'], function () {
+    // This will only run if the lint task is successful...
+});
 
 
 // onError method
+function onError(err) {
+  console.log(err);
+  this.emit('end');
+}
 
 
 /* if you have multiple js files linked to your html file,
